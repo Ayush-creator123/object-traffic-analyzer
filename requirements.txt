@@ -1,0 +1,9 @@
+streamlit
+opencv-python-headless
+pandas
+matplotlib
+ultralytics
+numpy
+lapx
+imageio
+imageio-ffmpeg

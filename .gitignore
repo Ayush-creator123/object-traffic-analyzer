@@ -1,0 +1,36 @@
+# macOS/system files
+.DS_Store
+
+# Python cache and local environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Streamlit/runtime files
+*.log
+*.pid
+.streamlit/secrets.toml
+
+# Generated analysis outputs
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.json
+
+# Training/generated folders
+dataset/
+runs/
+
+# Model weights
+*.pt
+*.pth
+!yolo11n.pt
+!yolo11s.pt
+
+# Other large model formats
+*.prototxt
+*.caffemodel
+*.onnx
