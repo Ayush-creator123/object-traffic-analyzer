@@ -1,0 +1,32 @@
+[data-testid="stMain"] {
+    background-image:
+        radial-gradient(ellipse at 92% 90%, rgba(216, 153, 54, .19), transparent 58%),
+        radial-gradient(ellipse at 45% 0%, rgba(108, 126, 134, .10), transparent 60%);
+}
+
+/* Two streets on a muted block map, fading away behind the controls. */
+[data-testid="stMain"]::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    --curb: rgba(109, 121, 128, .45);
+    --road: rgba(109, 121, 128, .28);
+    --stripe: rgba(224, 164, 56, .90);
+    background-image:
+        linear-gradient(132deg, transparent calc(71% - 23px),
+            var(--curb) calc(71% - 23px) calc(71% - 21px),
+            var(--road) calc(71% - 21px) calc(71% - 3px),
+            var(--stripe) calc(71% - 3px) calc(71% - 1px),
+            var(--road) calc(71% - 1px) calc(71% + 1px),
+            var(--stripe) calc(71% + 1px) calc(71% + 3px),
+            var(--road) calc(71% + 3px) calc(71% + 21px),
+            var(--curb) calc(71% + 21px) calc(71% + 23px), transparent calc(71% + 23px)),
+        linear-gradient(47deg, transparent calc(67% - 11px),
+            var(--road) calc(67% - 11px) calc(67% - 1px),
+            var(--curb) calc(67% - 1px) calc(67% + 1px),
+            var(--road) calc(67% + 1px) calc(67% + 11px), transparent calc(67% + 11px)),
+        repeating-linear-gradient(132deg, transparent 0 62px, rgba(109, 121, 128, .18) 62px 65px),
+        repeating-linear-gradient(47deg, transparent 0 91px, rgba(109, 121, 128, .18) 91px 94px);
+    mask-image: linear-gradient(145deg, transparent 18%, rgba(0, 0, 0, .24) 48%, #000 82%);
+}

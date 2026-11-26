@@ -5,6 +5,7 @@ import os
 import tempfile
 import zipfile
 from collections import defaultdict
+from pathlib import Path
 
 os.environ.setdefault("MPLCONFIGDIR", os.path.join(tempfile.gettempdir(), "matplotlib-cache"))
 os.environ.setdefault("YOLO_CONFIG_DIR", os.path.join(tempfile.gettempdir(), "ultralytics-cache"))
@@ -196,9 +197,15 @@ def process_object_detection(input_path: str, model_choice: str):
             detected_ids = []
 
             if results and results[0].boxes is not None:
-                for box in results[0].boxes.data.cpu().numpy():
-                    x1, y1, x2, y2, conf, cls = box
+                boxes = results[0].boxes
+                xyxy_arr = boxes.xyxy.cpu().numpy()
+                conf_arr = boxes.conf.cpu().numpy()
+                cls_arr = boxes.cls.cpu().numpy().astype(int)
+
+                for idx, cls in enumerate(cls_arr):
                     cls = int(cls)
+                    x1, y1, x2, y2 = xyxy_arr[idx]
+                    conf = float(conf_arr[idx])
                     if conf < 0.7 or cls >= len(class_list):
                         continue
 
@@ -400,14 +407,32 @@ def render_upload_section(title: str, upload_key: str, stored_path_key: str):
     return st.session_state.get(stored_path_key)
 
 
-def render_compact_video(video_path: str):
+def render_compact_video(video_path: str, fit_screen: bool = False):
     left_col, center_col, right_col = st.columns([1, 3, 1])
     with center_col:
-        st.video(video_path)
+        if fit_screen:
+            cap = cv2.VideoCapture(video_path)
+            video_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            video_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            cap.release()
+
+            max_display_width = 760
+            max_display_height = 720
+            if video_width > 0 and video_height > 0:
+                display_width = min(
+                    max_display_width,
+                    video_width,
+                    int(max_display_height * video_width / video_height),
+                )
+            else:
+                display_width = 480
+            st.video(video_path, width=max(display_width, 1))
+        else:
+            st.video(video_path)
 
 
 st.title("Video Analysis Suite")
-st.caption("Switch between general object detection and traffic analysis whenever you want.")
+st.caption("Choose a tool in the sidebar to analyze your video.")
 
 AVAILABLE_MODELS, SKIPPED_MODELS = get_available_models()
 if not AVAILABLE_MODELS:
@@ -416,7 +441,7 @@ if not AVAILABLE_MODELS:
 
 with st.sidebar:
     st.header("Controls")
-    option = st.radio("Choose a tool", ["Object Detection", "Traffic Analysis"])
+    option = st.radio("Choose a tool", ["Object Detection", "Traffic Analysis"], index=None)
     model_choice = st.selectbox(
         "Detection model",
         AVAILABLE_MODELS,
@@ -424,6 +449,16 @@ with st.sidebar:
     )
     if SKIPPED_MODELS:
         st.caption("Unavailable models: " + ", ".join(SKIPPED_MODELS))
+
+backgrounds = {
+    None: "entry.css",
+    "Object Detection": "objects.css",
+    "Traffic Analysis": "traffic.css",
+}
+st.html(Path(__file__).with_name("backgrounds") / backgrounds[option])
+
+if option is None:
+    st.stop()
 
 if option == "Object Detection":
     input_video_path = render_upload_section("Object Detection", "od_upload", "od_input_path")
@@ -433,7 +468,7 @@ if option == "Object Detection":
 
         st.subheader("Output Video")
         if os.path.exists(output_video_path):
-            render_compact_video(output_video_path)
+            render_compact_video(output_video_path, fit_screen=True)
             with open(output_video_path, "rb") as file:
                 st.download_button("Download annotated video", file, file_name="output_video.mp4")
 
